@@ -9,17 +9,17 @@
 
 ## ✨ Key Features
 
-- **🧠 Intelligent Scriptwriting:** Uses **Google Gemini 2.0 Flash** to write engaging, "Edutainment" style scripts (Vox/Kurzgesagt style) with strict storytelling structures (Hook → Context → Mechanism → Twist).
-- **🗣️ Human-Like Voiceovers:** Integrated with **Suno Bark** (via Google Colab/Ngrok) for high-quality, expressive AI narration. Includes "Influencer Mode" for dynamic intonation.
-- **🎞️ Dual-Visual System:** Automatically searches and downloads **two distinct stock videos** per scene from **Pexels**, creating a dynamic "A/B Split" visual style to maximize viewer retention.
+- **🧠 Intelligent Scriptwriting:** Configurable LLM provider abstraction with **Gemini**, **OpenAI**, or **Anthropic** backends.
+- **🗣️ Human-Like Voiceovers:** **ElevenLabs** voice generation with configurable `voice_id`, model, and voice settings.
+- **🎞️ Dual-Visual System:** Configurable visual providers: **Stability AI** (image generation), **Replicate** (video/image generation), and **Pexels** fallback.
 - **✂️ Advanced FFmpeg Editing:**
 - **Smart Trimming:** Syncs video perfectly to audio duration.
 - **A/B Splitting:** Cuts every scene in half, switching visuals mid-sentence.
 - **Pro Transitions:** Randomly applies `xfade` (fade, slide, wipes) between scenes.
 - **Silence Removal:** Automatically trims dead air from AI voice generation.
 
-- **🤖 Random Avatar Injection:** Automatically inserts a custom "Avatar/Mascot" video into a random middle scene to build channel brand identity.
 - **🪟 Windows Ready:** Includes specific FFmpeg flags (`yuv420p`, `faststart`) to prevent corruption errors (`0x80004005`) on Windows Media Player.
+- **🧩 Production Configuration:** Centralized app configuration via `config.py` and environment variables in `.env`.
 
 ---
 
@@ -58,11 +58,11 @@ Automated-YT-Shorts-AI/
 - _Windows:_ `winget install ffmpeg` (or download from [ffmpeg.org](https://ffmpeg.org/download.html)).
 - _Verify:_ Type `ffmpeg -version` in your terminal.
 
-3. **API Keys:**
-
-- **Google Gemini API Key** (Free tier available).
-- **Pexels API Key** (Free).
-- **Ngrok Auth Token** (If running Bark on Colab).
+3. **API Keys / Tokens** (based on your selected providers):
+- Gemini / OpenAI / Anthropic API key
+- ElevenLabs API key
+- Stability API key and/or Replicate API token
+- Pexels API key (recommended as fallback)
 
 ---
 
@@ -87,56 +87,31 @@ _(If `requirements.txt` is missing, install manually: `pip install google-genera
 
 ### 3. Environment Setup
 
-Create the required folders and add your avatar:
+Copy `.env.example` to `.env` and fill provider keys/settings:
 
-1. Create folder: `assets/avatar`
-2. Place your avatar video inside and name it: `Professional_Girl_Animation_Video_Generation.mp4`
+```bash
+cp .env.example .env
+```
 
-### 4. Configure API Keys
-
-You can set them in your environment variables or hardcode them (temporarily) in the modules:
-
-- `modules/brain.py` → `genai.configure(api_key="YOUR_GEMINI_KEY")`
-- `modules/asset_manager.py` → `self.api_key = "YOUR_PEXELS_KEY"`
-- `modules/audio.py` → Update `raw_url` with your active Ngrok/Colab link.
+All secrets are read from environment variables (no hardcoded API keys).
 
 ---
 
 ## 🎮 How to Run
 
-### Step 1: Start the Audio Server (Bark)
-
-Since Bark requires a GPU, we run it on Google Colab.
-
-1. Open the **Colab Notebook** provided for this project.
-2. Paste your Ngrok Token.
-3. Run the cell.
-4. Copy the `https://xxxx.ngrok-free.app` URL.
-5. Paste this URL into `modules/audio.py` inside the `AudioEngine` class.
-
-### Step 2: Test Connection (Optional)
-
-Run the test script to ensure your local machine can talk to the Cloud GPU.
-
-```bash
-python test_audio.py
-
-```
-
-_If you see `✅ SUCCESS`, you are ready._
-
-### Step 3: Generate Video
-
 Run the main script:
 
 ```bash
 python main.py
-
 ```
 
-1. Enter a topic (e.g., _"The Mystery of the Pyramids"_).
-2. Wait for the AI to write the script, generate audio, download stock footage, and edit the video.
-3. The final video will be saved in `assets/final/final_short.mp4`.
+Or use CLI overrides:
+
+```bash
+python main.py --topic "Ancient Rome engineering" --ai-provider openai --visual-provider stability --output my_short.mp4
+```
+
+The final video is saved to `assets/final/`.
 
 ---
 
