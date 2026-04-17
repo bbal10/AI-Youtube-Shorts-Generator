@@ -28,11 +28,21 @@ class Timeline:
 
 
 class Composer:
-    def __init__(self, width: int = 1080, height: int = 1920, fps: int = 30, transition_duration: float = 0.5):
+    def __init__(
+        self,
+        width: int = 1080,
+        height: int = 1920,
+        fps: int = 30,
+        transition_duration: float = 0.5,
+        subtitle_y_ratio: float = 0.72,
+        subtitle_font_size: int = 52,
+    ):
         self.width = width
         self.height = height
         self.fps = fps
         self.transition_duration = transition_duration
+        self.subtitle_y_ratio = subtitle_y_ratio
+        self.subtitle_font_size = subtitle_font_size
         self.temp_dir = os.path.join(os.getcwd(), "assets", "temp")
         self.final_dir = os.path.join(os.getcwd(), "assets", "final")
         os.makedirs(self.temp_dir, exist_ok=True)
@@ -157,9 +167,9 @@ class Composer:
                 "drawtext",
                 text=subtitle_text,
                 fontcolor="white",
-                fontsize=52,
+                fontsize=self.subtitle_font_size,
                 x="(w-text_w)/2",
-                y="h*0.72",
+                y=f"h*{self.subtitle_y_ratio}",
                 borderw=3,
                 bordercolor="black",
                 shadowcolor="black",
@@ -190,18 +200,18 @@ class Composer:
         logger.info("Timeline created with %s segments", len(timeline.segments))
 
         rendered_paths = []
-        moods = []
+        transitions = []
         for index, scene in enumerate(script_data):
             if index >= len(visual_pairs) or visual_pairs[index] is None:
                 continue
             output_path = self.render_scene(scene, visual_pairs[index])
             if output_path:
                 rendered_paths.append(output_path)
-                moods.append(scene.get("mood", ""))
+                transitions.append(self.choose_transition(scene.get("mood", "")))
 
-        return rendered_paths, moods
+        return rendered_paths, transitions
 
-    def concatenate_with_transitions(self, video_paths, moods, output_filename="final_short.mp4"):
+    def concatenate_with_transitions(self, video_paths, transitions, output_filename="final_short.mp4"):
         output_path = os.path.join(self.final_dir, output_filename)
 
         if os.path.exists(output_path):
@@ -218,7 +228,7 @@ class Composer:
         for index in range(1, len(video_paths)):
             next_clip = ffmpeg.input(video_paths[index])
             next_duration = self.get_duration(video_paths[index])
-            transition = self.choose_transition(moods[index - 1] if index - 1 < len(moods) else "")
+            transition = transitions[index - 1] if index - 1 < len(transitions) else random.choice(self.transitions)
             offset = max(current_duration - self.transition_duration, 0.0)
 
             v_stream = ffmpeg.filter(

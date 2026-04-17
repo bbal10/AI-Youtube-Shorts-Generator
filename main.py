@@ -55,7 +55,7 @@ def build_llm_provider(config: AppConfig, provider_name: str):
     if provider == "openai":
         return OpenAIProvider(config.openai_api_key, config.ai_model)
     if provider == "anthropic":
-        return AnthropicProvider(config.anthropic_api_key, config.ai_model)
+        return AnthropicProvider(config.anthropic_api_key, config.ai_model, config.anthropic_max_tokens)
     raise ValueError(f"Unsupported AI provider: {provider_name}")
 
 
@@ -117,6 +117,8 @@ async def run_pipeline():
         height=config.output_height,
         fps=config.fps,
         transition_duration=config.transition_duration,
+        subtitle_y_ratio=config.subtitle_y_ratio,
+        subtitle_font_size=config.subtitle_font_size,
     )
 
     topic = args.topic or brain.get_trending_topic()
@@ -130,8 +132,8 @@ async def run_pipeline():
         raise RuntimeError("No scenes with valid audio")
 
     assets_map = asset_manager.get_videos(script)
-    rendered_scene_paths, moods = composer.render_all_scenes(script, assets_map)
-    final_output = composer.concatenate_with_transitions(rendered_scene_paths, moods, output_filename=args.output)
+    rendered_scene_paths, transitions = composer.render_all_scenes(script, assets_map)
+    final_output = composer.concatenate_with_transitions(rendered_scene_paths, transitions, output_filename=args.output)
 
     if not final_output:
         raise RuntimeError("Video composition failed")
@@ -152,6 +154,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(run_pipeline())
     except Exception as error:  # noqa: BLE001
-        logging.basicConfig(level=logging.INFO)
         logger.exception("Pipeline failed: %s", error)
         raise

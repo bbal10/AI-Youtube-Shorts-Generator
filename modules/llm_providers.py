@@ -33,25 +33,27 @@ class OpenAIProvider(LLMProvider):
         self.client = OpenAI(api_key=api_key)
 
     def generate(self, prompt: str) -> str:
-        response = self.client.responses.create(
+        response = self.client.chat.completions.create(
             model=self.model,
-            input=prompt,
+            messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
         )
-        return (response.output_text or "").strip()
+        message = response.choices[0].message.content if response.choices else ""
+        return (message or "").strip()
 
 
 class AnthropicProvider(LLMProvider):
-    def __init__(self, api_key: str, model: str):
+    def __init__(self, api_key: str, model: str, max_tokens: int = 2000):
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY is required for AnthropicProvider")
         self.model = model
+        self.max_tokens = max_tokens
         self.client = Anthropic(api_key=api_key)
 
     def generate(self, prompt: str) -> str:
         response = self.client.messages.create(
             model=self.model,
-            max_tokens=2000,
+            max_tokens=self.max_tokens,
             temperature=0.7,
             messages=[{"role": "user", "content": prompt}],
         )

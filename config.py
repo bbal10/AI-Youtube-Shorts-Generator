@@ -10,6 +10,7 @@ class AppConfig:
     gemini_api_key: str
     openai_api_key: str
     anthropic_api_key: str
+    anthropic_max_tokens: int
 
     elevenlabs_api_key: str
     elevenlabs_voice_id: str
@@ -28,6 +29,8 @@ class AppConfig:
     output_height: int
     fps: int
     transition_duration: float
+    subtitle_y_ratio: float
+    subtitle_font_size: int
 
     @classmethod
     def from_env(cls) -> "AppConfig":
@@ -38,6 +41,7 @@ class AppConfig:
             gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
             openai_api_key=os.getenv("OPENAI_API_KEY", ""),
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
+            anthropic_max_tokens=int(os.getenv("ANTHROPIC_MAX_TOKENS", "2000")),
             elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY", ""),
             elevenlabs_voice_id=os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"),
             elevenlabs_model_id=os.getenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2"),
@@ -53,4 +57,6 @@ class AppConfig:
             output_height=int(os.getenv("OUTPUT_HEIGHT", "1920")),
             fps=int(os.getenv("OUTPUT_FPS", "30")),
             transition_duration=float(os.getenv("TRANSITION_DURATION", "0.5")),
+            subtitle_y_ratio=float(os.getenv("SUBTITLE_Y_RATIO", "0.72")),
+            subtitle_font_size=int(os.getenv("SUBTITLE_FONT_SIZE", "52")),
         )
